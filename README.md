@@ -8,9 +8,9 @@ I wrote this specifically for my company's [Corporate Export](https://get.slack.
 
 * Occasionally, when using the `download-attachments` option, a download might fail and trigger an `ETIMEDOUT` exception. To get around that (because I'm lazy and didn't want to implement retry logic), I added the ability to specify channels and DMs to exclude, so you can just exclude the ones that were already processed and start from the last one that was processed.
 
-* The HTML generator was very hackily thrown together, and there is not currently a way to alter the resulting HTML/CSS via any command line options
+* Even when not specifying the `download-attachments` option, the links in the resulting HTML are replaced with links to where the files would be downloaded. This was actually intentional, but should probably be made optional
 
-* Event when not specifying the `download-attachments` option, the links in the resulting HTML are replaced with links to where the files would be downloaded. This was actually intentional, but should be made optional (if I cared enough)
+* The HTML generator was very hackily thrown together, and there is not currently a way to alter the resulting HTML/CSS via any command line options
 
 ## Usage / Examples
 
