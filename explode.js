@@ -531,18 +531,41 @@ function mkdirp(path) {
 async function downloadFilesAndRewriteLinks(html, attachments, dir) {
   const filesDir = path.join(dir, "files");
   await mkdirp(filesDir);
-  await Promise.all(attachments.map(attachment => new Promise((resolve, reject) => {
+  await Promise.all(attachments.map(attachment => {
     const fileName = `${attachment.id}.${attachment.filetype}`;
-    if (download_attachments) {
-      request(attachment.url_private)
-        .on('error', reject)
-        .pipe(fs.createWriteStream(path.join(filesDir, fileName)))
-        .on('close', resolve);
-    } else {
-      resolve();
-    }
     html = html.replace(attachment.permalink, `files/${fileName}`);
-  })));
+    if (!download_attachments) return Promise.resolve();
+    const filePath = path.join(filesDir, fileName);
+    return checkFileExists(filePath)
+      .then(([exists, fd]) => {
+        if (!exists) {
+          return writeUrlResponseTo(attachment.url_private, filePath, fd);
+        }
+      });
+  }));
 
   return html;
+}
+
+function writeUrlResponseTo(url, filePath, fd) {
+  return new Promise((resolve, reject) => {
+    request(url)
+      .on('error', reject)
+      .pipe(fs.createWriteStream(filePath, {fd}))
+      .on('close', resolve);
+  });
+}
+
+async function checkFileExists(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.open(filePath, 'wx', (err, fd) => {
+      if (err) {
+        if (err.code === 'EEXIST') {
+          return resolve([true]);
+        }
+        return reject(err);
+      }
+      resolve([false, fd]);
+    });
+  });
 }
